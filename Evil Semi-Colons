@@ -1,0 +1,710 @@
+//JavaScript
+package 
+{ 
+    //importing classes that will be needed in order the program to run 
+	import flash.display.MovieClip;//functionality for the FLASH movie 
+	import flash.events.*;//imports a package of classes to handle events 
+	import flash.ui.Keyboard;	
+	import flash.utils.*;
+	import flash.events.TimerEvent; 
+    import flash.utils.Timer;
+
+	public class Level2 extends MovieClip 
+	{ 
+
+		var backing:Background;
+		var p:Player;
+		var gun:Gun;
+		var sword:Sword1;
+		var door:Door;
+		var doris:Doris;
+		var enemy:Enemy;
+		var enemy2:Enemy3;
+		var wall:Wall;
+		var wall2:Wall2;
+		var wall3:Wall3;
+		var bullet:Bullet;
+		var wArray:Array;//wall array
+		var wArray2:Array;//wall2 array
+		var wArray3:Array;//wall3 array
+		var eArray:Array;//enemy array
+		var sArray:Array;//enemy2 array
+		var bArray:Array;//bullet array
+		var etime:Timer;//enemy timer
+		var e2time:Timer;//enemy2 timer
+		var Space:Boolean=true;
+		var leftArrow:Boolean;
+		var rightArrow:Boolean;
+		var upArrow:Boolean;
+		var downArrow:Boolean;
+		var weapon:Boolean;
+		var pHasWeapon:Boolean=false;
+		var dir:int=1;//direction
+		var vx:int;//velocity x
+		var vy:int;//velocity y
+		var level:int;//level
+
+		public function L2() //constructor function
+		{ 
+			//this is to indicate which level the player is in
+			level=1
+			
+			//will be used as the variables for the arrow keys
+			//declares that it starts at 0
+			vx=0;
+			vy=0;
+			
+			//This adds the background
+			backing=new Background()
+			backing.x=0
+			backing.y=0
+			addChild(backing)
+			
+			//adds door to stage
+			door=new Door();
+			door.x=500;
+			door.y=65;
+			stage.addChild(door);
+			
+			//adds player to stage
+			p=new Player();
+			p.x=20;
+			p.y=250;
+			stage.addChild(p);
+
+			if(weapon==true)
+			{
+				//Adds gun to the stage if player choose gun
+				gun=new Gun()
+				gun.x=235
+				gun.y=150
+				addChild(gun)
+			}
+			else if(weapon==false)
+			{
+				//Adds sword to the stage if player choose sword
+				sword=new Sword1()
+				sword.x=235
+				sword.y=150
+				addChild(sword)
+			}
+
+			//new arrays for walls
+			wArray=new Array()
+			wArray2=new Array()
+			wArray3=new Array()
+			
+			// The next three nested loops creates the walls
+			for (var n:int=0;n<2;n++)
+			{
+				for (var w:int=0;w<4;w++)
+				{
+					wall=new Wall()
+					wall.x=60+140*n
+					wall.y=425-125*w
+					addChild(wall)
+					wArray.push(wall)//adds wall to array
+				}
+			}
+			for (var a:int=0;a<3;a++)
+			{
+				for (var b:int=0;b<4;b++)
+				{
+					wall2=new Wall2()
+					wall2.x=130+140*a
+					wall2.y=-30+125*b
+					addChild(wall2)
+					wArray2.push(wall2)//adds wall to array
+				}
+			}
+			for (var f:int=0;f<1;f++)
+			{
+				for (var r:int=0;r<11;r++)
+				{
+					wall3=new Wall3()
+					wall3.x=340
+					wall3.y=-30+50*r
+					addChild(wall3)
+					wArray3.push(wall3)//adds wall to array
+				}
+			}
+			
+			//adds doris to stage
+			doris=new Doris()
+			doris.x=420
+			doris.y=225
+			addChild(doris)
+			doris.visible=false//Doris is invisible
+			
+			eArray=new Array()//new array for enemies
+			bArray=new Array()//new array for bullets
+			
+			//how long the timer will run 
+			//and amount of seconds inbetween each new created enemy
+			etime=new Timer(250,0)
+			e2time=new Timer(1500,0)
+			
+			etime.addEventListener(TimerEvent.TIMER, onCreate);//timer 'etime'
+			e2time.addEventListener(TimerEvent.TIMER, onEn);//timer 'e2time'
+			stage.addEventListener(KeyboardEvent.KEY_DOWN,kDown);//for the arrow keys
+			stage.addEventListener(KeyboardEvent.KEY_UP,kUp);//for the arrow keys
+			stage.addEventListener(Event.ENTER_FRAME, gameLoop);//24 loops by default
+		}//end constructor
+		
+		//This function takes the info from the fla file on wether the player chose a sword or gun 
+		public function weapon1(val:Boolean)
+		{
+			weapon=val;//weapon takes the value of weapon1
+		}
+		
+		public function onCreate(e:TimerEvent):void  
+		{
+			//creates a new enemy once the timer starts
+			enemy=new Enemy()
+			enemy.x=480
+			enemy.y=200
+			addChild(enemy)
+			eArray.push(enemy)//adds enemy to the array
+        } 
+		
+		public function onEn(e:TimerEvent):void  
+		{
+			//creates a new enemy2 once the timer starts
+			enemy2=new Enemy3()
+			enemy2.x=Math.random()*300+30//x cordinate created at random
+			enemy2.y=-15
+			addChild(enemy2)
+        } 
+		
+		public function kDown(e:KeyboardEvent):void
+		{
+			if (e.keyCode==Keyboard.LEFT)//left arrow key was pressed
+			{
+				vx=-10;//the player is moved 7 pix (The higher the number the faster the player)
+				leftArrow=true//This is used later on to make the player look like it's walking
+				dir=-1//This is used later to change the direction of the player
+			}
+			else if (e.keyCode==Keyboard.RIGHT)//right arrow key was pressed
+			{
+				vx=10;//the player is moved 7 pix (The higher the number the faster the player)
+				rightArrow=true//This is used later on to make the player look like it's walking
+				dir=1//This is used later to change the direction of the player
+			}
+				
+			else if (e.keyCode==Keyboard.UP)//up arrow key was pressed
+			{
+				vy=-10;//the player is moved 7 pix (The higher the number the faster the player)
+				upArrow=true//This is used later on to make the player look like it's walking
+			}			
+			else if (e.keyCode==Keyboard.DOWN)//down arrow key was pressed
+			{
+				vy=10;//the player is moved 7 pix (The higher the number the faster the player)
+				downArrow=true//This is used later on to make the player look like it's walking
+			}		
+			if(weapon==true)
+			{
+				//code for picking up the Gun
+				//if the player touches the Gun it will pick it up then drop it where wanted using the space bar
+				if(e.keyCode==Keyboard.SPACE && p!=null&& gun!=null&& p.hitTestObject(gun)&& level==1)
+				{
+					if(!pHasWeapon)
+					{
+						//scaleX and scaleY makes the gun smaller
+						gun.scaleX=0.6
+						gun.scaleY=0.6
+						p.addChild(gun)//relative to player
+						gun.y=-5//relative to player
+						gun.x=2//relative to player
+						pHasWeapon=true//player has gun
+					}
+					else
+					{
+						//player put the gun down using the space bar
+						stage.addChild(gun)
+						gun.y=p.y
+						gun.x=p.x
+						pHasWeapon=false//player doesn't have gun
+					}
+						
+				}
+			}
+			else if(weapon==false)
+			{
+				//code for picking up the Sword
+				//if the player touches the Sword it will pick it up then drop it where wanted using the space bar
+ 				if(e.keyCode==Keyboard.SPACE && p!=null&& sword!=null&& p.hitTestObject(sword)&& level==1)
+				{
+					if(!pHasWeapon)
+					{
+						//scaleX and scaleY makes the sword smaller
+						sword.scaleX=0.6
+						sword.scaleY=0.6
+						p.addChild(sword)//relative to player
+						sword.y=-20//relative to player
+						sword.x=15//relative to player
+						pHasWeapon=true//player has gun
+					}
+					else
+					{
+						//player put the gun down using the space bar
+						stage.addChild(sword)
+						sword.y=p.y
+						sword.x=p.x
+						pHasWeapon=false//player doesn't have gun
+					}
+						
+				}
+			}
+ 
+			if(weapon==true)
+			{
+				// Allows player to shoot only in level 2
+				// When the space bar is pressed
+				if(e.keyCode==Keyboard.SPACE && level==2 && p!=null&& gun!=null&& p.hitTestObject(gun)&&Space==true && doris!=null)
+				{
+					//creates bullets in level 2 for the gun
+					bullet=new Bullet()
+					bullet.x=p.x+25
+					bullet.y=p.y-27
+					addChild(bullet)//adds to stage
+					bArray.push(bullet)//adds to Array
+				}
+			}
+			else if(weapon==false)
+			{
+				//This allows the player to atack using the sword
+				if(e.keyCode==Keyboard.SPACE && level==2 && p!=null&& sword!=null&& p.hitTestObject(sword) && Space==true && doris!=null)
+				{
+					//sword rotates
+					sword.rotation=90
+					Space=false
+				}
+			}
+			
+		}//end kDown
+		public function kUp(e:KeyboardEvent):void
+		{
+			if (e.keyCode==Keyboard.LEFT)//left arrow key is no longer held down
+			{
+				vx=0;//player no longer moves
+				leftArrow=false//This is used later on to make the player look like it's not walking
+			}
+			else if (e.keyCode==Keyboard.RIGHT)//right arrow key is no longer held down
+			{
+				vx=0;//player no longer moves
+				rightArrow=false//This is used later on to make the player look like it's not walking
+			}
+			else if (e.keyCode==Keyboard.UP)//up arrow key is no longer held down
+			{
+				vy=0;//player no longer moves
+				upArrow=false//This is used later on to make the player look like it's not walking
+			}			
+			else if (e.keyCode==Keyboard.DOWN)//down arrow key is no longer held down
+			{
+				vy=0;//player no longer moves
+				downArrow=false//This is used later on to make the player look like it's not walking
+			}		
+			if(weapon==true)
+			{
+				if (e.keyCode==Keyboard.SPACE&&level==2)//space key is no longer held down in level 2
+				{
+					 Space=true;//stops creating bullets
+				}
+			}
+			if(weapon==false)
+			{
+				if(e.keyCode==Keyboard.SPACE&&level==2)//space key is no longer held down in level 2
+				{
+					//unrotates the sword so it is non-attacking mode
+					Space=true
+					sword.rotation=0
+				}
+			}
+			
+		}//end kDown		
+
+		//Game loops function starts)
+		public function gameLoop(e:Event):void 
+		{
+			//makes player move according to the arrow keys
+			if(p!=null)
+			{
+				p.x+=vx
+				p.y+=vy
+				p.scaleX=dir//turns the player in the wanted direction
+			}
+			
+			//This is so the player doesn't go off the stage
+			if(p!=null && p.y<20 || p!=null && p.y>380)
+			{
+				p.y-=vy//if it hits (x,19) or (x,381) it will not let the player walk any further
+			}
+			if(p!=null && p.x>535 || p!=null && level==2 && p.x<20)
+			{
+				p.x-=vx//the player hits (536,y) in level 1 and 2 or (19,y) in level 2 it will not let the player walk any further
+			}
+			
+			//makes the player look like its walking
+			if (p!=null&&leftArrow==true || rightArrow==true || upArrow==true || downArrow==true)
+			{
+				if (p!=null&&p.currentFrame>17)
+				{
+					p.gotoAndPlay(2);//plays timeline at fram 2
+				}
+				else
+				{
+					if(p!=null)
+					{
+						//stops playing timeline when no arrow key is pressed
+						p.gotoAndStop((p.currentFrame+1));
+					}
+				}
+			}
+			
+			//******************************** LEVEL 1 *************************************************
+			if(level==1)
+			{
+				//for loop
+				for(var h:int=0;h<wArray.length;h++)
+				{
+					//if the player hits a wall it gets sent back to the starting point
+					if(wArray[h]!=null&&p.hitTestObject(wArray[h]))
+					{
+						p.x=20
+						p.y=250
+					}
+				}
+				
+				//for loop
+				for(var t:int=0;t<wArray2.length;t++)
+				{
+					//if the player hits a wall it gets sent back to the starting point
+					if(wArray2[t]!=null&&p.hitTestObject(wArray2[t]))
+					{
+						p.x=20
+						p.y=250
+					}
+				}
+				
+				//for loop
+				for(var q:int=0;q<wArray3.length;q++)
+				{
+					//if the player hits a wall it gets sent back to the starting point
+					if(wArray3[q]!=null&&p.hitTestObject(wArray3[q]))
+					{
+						p.x=20
+						p.y=250
+					}
+				}
+				
+				//This is for the 'cheat' so that if a player goes beyond -70 in terms of x
+				//it will end up on the other side of the game 
+				if(p.x<-70)
+				{
+					p.x=535
+				}
+				
+				//This is also for the 'cheat'
+				//If the player touches the door,
+				//The wall that the player can't pass will disapear
+				if (p.hitTestObject(door))
+				{
+					for(var o:int=(wArray3.length-1);o>=0;o--)
+					{
+						removeChild(wArray3[o])
+						wArray3.splice(o,1)//splices wall from array
+					}
+				}
+				
+				//If the player has the weapon and gets to the door
+				//The player will move on to the second portion of 'level 2'
+				if (p.hitTestObject(door) && pHasWeapon==true)
+				{
+					//removes the walls
+					for(var c:int=(wArray.length-1);c>=0;c--)
+					{
+						removeChild(wArray[c])
+						wArray.splice(c,1)
+					}
+					//removes the walls
+					for(var v:int=(wArray2.length-1);v>=0;v--)
+					{
+						removeChild(wArray2[v])
+						wArray2.splice(v,1)
+					}
+					level=2
+					gotoAndStop(5)//Goes to frame 5
+					p.x=50
+				}
+			}
+            //********************************** LEVEL 2 Gun **************************************			
+
+			if (level==2&&weapon==true)
+			{			
+				//starts timer
+				e2time.start()
+				
+				//if the door doesn't equal null, then this will remove it
+				if(door!=null)
+				{
+					stage.removeChild(door)
+					door=null
+				}
+				
+				//if the gun doesn't equal null, then this will position it to a certain
+				//location relative to the player
+				if(gun!=null)
+				{
+					gun.x=14
+					gun.y=-27 
+				}
+				
+				//if doris isn't null then this will make her visible
+				if(doris!=null)
+				{
+					doris.visible=true
+				}
+				
+				//starts timer
+				etime.start()	
+				
+				//Once there are 8 enemies on the stage
+				//the timer will stop
+				if(eArray.length==8)
+				{
+					etime.stop()
+				}
+				
+				//need a loop that will move each bullet from the array 25 pix right.
+				for (var j:int=0;j<bArray.length;j++)
+				{
+					//for each bullet on the screen, move it across 25 pix right if visible
+					if (bArray[j].x<550)//is it still visible
+					{
+						bArray[j].x+=15//move 25 pix right
+					}
+					else//not on stage
+					{
+						//Remove from the STAGE
+						removeChild(bArray[j])
+						//remove from the ARRAY
+						bArray.splice(j,1)
+					}
+					// A loop that will delete the ememies when they get hit
+					for (var rr:int=0;rr<eArray.length;rr++)
+					{
+						//If the bullet hits the enemies, this 'if statement' will remove them.
+						if (eArray[rr]!=null && bArray[j]!=null && bArray[j].hitTestObject(eArray[rr]))
+						{
+							//Remove the bullet when it hits the enemy
+							removeChild(bArray[j])
+							//remove from the ARRAY
+							bArray.splice(j,1)
+							removeChild(eArray[rr])//Removes enemy
+							eArray.splice(rr,1)
+							//removes timer for enemies
+							etime.removeEventListener(TimerEvent.TIMER, onCreate)
+						}
+					}
+				}
+				
+				//If enemy2 isn't null this will move it
+				if (enemy2!=null)
+				{
+					enemy2.y+=15//move 25 pix right
+				}
+				
+				//When enemy isn't null and is off the stage this will make it
+				//invisible and will make it null
+				if (enemy2!=null && enemy2.y>400)
+				{
+					enemy2.visible=false//enemy not invisible anymore
+					enemy2=null
+				}
+				
+				
+				for(var xm:int=0;xm<bArray.length;xm++)
+				{
+					//If the bullets hit doris then it erases everything from the stage and it's 'GAMEOVER'
+					if(bArray[xm]!=null&&doris!=null&&bArray[xm].hitTestObject(doris))
+					{
+						pHasWeapon=false
+						removeChild(backing)
+						gotoAndStop(6)//frame 6
+						stage.removeChild(p)//removes player
+						  
+						removeChild(doris)//removes doris
+						doris=null
+						removeChild(bArray[xm])//removes bullets
+						bArray.splice(xm,1)//splices bullets
+						etime.removeEventListener(TimerEvent.TIMER, onCreate)//removes event listener
+						e2time.stop()//stops timer
+						e2time.removeEventListener(TimerEvent.TIMER,onEn)//removes event listener
+						//removes remaining enemies
+						for(var rrr:int=(eArray.length-1);rrr>=0;rrr--)
+						{
+							if(eArray[rrr]!=null)
+							{
+								removeChild(eArray[rrr])
+								eArray.splice(rrr,1)
+							}
+						}
+					}
+				}
+				
+				//If enemy2 hits the player then it is also 'gameover'
+				if(p!=null && enemy2!=null && enemy2.hitTestObject(p))
+				{
+					pHasWeapon=false
+					removeChild(doris)//removes doris
+					doris=null
+					stage.removeChild(p)//removes player
+					p=null
+					gotoAndStop(6)//frame6
+					removeChild(backing)
+					e2time.stop()//stops timer
+					e2time.removeEventListener(TimerEvent.TIMER,onEn)//removes event listener
+				}
+				
+				for(var a1:int=0;a1<eArray.length;a1++)
+				{
+					//if the player hits the enemies then it bounces them back
+					if(p!=null&&eArray[a1].hitTestObject(p)&&Space==true)
+					{
+						p.x=100
+						p.y=200
+					}
+				}
+				
+				//When the player defeats the enemies and gets to doris then they have won level 2
+				if(eArray.length==0&&doris!=null&&p.hitTestObject(doris)&&p!=null)
+				{
+					//removes remaining from stage
+					removeChild(doris)
+					doris=null
+					stage.removeChild(p)
+					p=null
+					gotoAndStop(7)
+					removeChild(backing)
+					e2time.stop()
+					e2time.removeEventListener(TimerEvent.TIMER,onEn)
+				}
+			}
+			
+			//********************************** LEVEL 2 Sword **************************************	
+			
+			if (level==2&&weapon==false)
+			{
+				//starts timer
+				e2time.start()
+				
+				//removes door if not null
+				if(door!=null)
+				{
+					stage.removeChild(door)
+					door=null
+				}
+				
+				//makes doris visible when not null
+				if(doris!=null)
+				{
+					doris.visible=true
+				}
+				
+				//starts timer
+				etime.start()
+				
+				//when there are 8 enemies the timer will stop
+				if(eArray.length==8)
+				{
+					etime.stop()
+				}
+				
+				//This places my sword where I want it when it is rotated
+				// so it looks as though it is in the player's hands
+				if(sword!=null&&sword.rotation==90)
+				{
+					sword.x=25
+					sword.y=-20
+				}
+				//This puts it back to where it was originally
+				//when it wasn't attacking
+				else
+				{
+					if(sword!=null)
+					{
+						sword.y=-25
+						sword.x=15 
+					} 
+				}
+				
+				//If enemy2 isn't null this will move it
+				if (enemy2!=null)
+				{
+					enemy2.y+=15//move 25 pix right
+				}
+				
+				//When enemy isn't null and is off the stage this will make it
+				//invisible and will make it null
+				if (enemy2!=null && enemy2.y>400)
+				{
+					enemy2.visible=false
+					enemy2=null
+				}
+				
+				for (var kj:int=0;kj<eArray.length;kj++)
+				{
+					//if the player hits the enemies when not 
+					//attacking then it gets bounced back
+					if(p!=null&&eArray[kj].hitTestObject(p)&&Space==true)
+					{
+						p.x=100
+						p.y=200
+					}
+				}
+				
+				for(var jk:int=0;jk<eArray.length;jk++)
+				{
+					//If the sword hits the enemies, this 'if statement' will remove them.
+					if (eArray[jk]!=null&&eArray[jk].hitTestObject(sword)&&Space==false)
+					{
+						removeChild(eArray[jk])//Removes enemy
+						eArray.splice(jk,1)
+						etime.removeEventListener(TimerEvent.TIMER, onCreate)//removes etime event listener
+					}
+				}
+				
+				//If the bullets hit doris then it erases everything from the stage and it's 'GAMEOVER'
+				if(doris!=null&&p.hitTestObject(doris)&&Space==false&&p!=null || p!=null && enemy2!=null && enemy2.hitTestObject(p))
+				{
+					pHasWeapon=false
+					removeChild(doris)//removes doris
+					doris=null
+					stage.removeChild(p)//removes player
+					p=null
+					gotoAndStop(6)//frame 6
+					removeChild(backing)
+					e2time.stop()//stops timer
+					e2time.removeEventListener(TimerEvent.TIMER,onEn)//removes event listener
+				}
+				
+				//if the player defeats the enemies and gets to doris then they win level 2
+				//removes remaining from stage
+ 				if(eArray.length==0&&doris!=null&&p.hitTestObject(doris)&&p!=null)
+				{
+					removeChild(doris)//removes doris
+					doris=null
+					stage.removeChild(p)//removes player
+					p=null
+					gotoAndStop(7)//frame 7
+					removeChild(backing)
+					e2time.stop()//stops timer
+					e2time.removeEventListener(TimerEvent.TIMER,onEn)//removes event listener
+				}
+			}
+				
+		}//end gameLoop 
+
+	}//end class 
+
+}//end package
